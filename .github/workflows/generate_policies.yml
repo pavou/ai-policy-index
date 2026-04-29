@@ -1,0 +1,49 @@
+name: Generate Policies
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'data/projects.csv'        # new project added → classify immediately
+  schedule:
+    - cron: '0 3 * * 1'           # every Monday 03:00 UTC → catch policy changes
+  workflow_dispatch:               # manual run from the Actions tab
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate policies.json
+        working-directory: .github/scripts
+        env:
+          AZURE_OPENAI_ENDPOINT:   ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+          AZURE_OPENAI_API_KEY:    ${{ secrets.AZURE_OPENAI_API_KEY }}
+          AZURE_OPENAI_DEPLOYMENT: ${{ secrets.AZURE_OPENAI_DEPLOYMENT }}
+        run: python generate_policies.py
+
+      - name: Open PR with updated policies.json
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH="policy-updates/$(date -u +%Y-%m-%d)"
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add data/policies.json README.md
+          if git diff --cached --quiet; then
+            echo "No changes to policies.json — skipping PR."
+            exit 0
+          fi
+          git commit -m "chore: refresh policies.json"
+          git push origin "$BRANCH"
+          gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "chore: refresh policies.json ($(date -u +%Y-%m-%d))" \
+            --body "Automated policy refresh. Review the diff in \`data/policies.json\` before merging."

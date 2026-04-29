@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Policy Index</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.0.6/css/pico.min.css" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #0d1117;
+      --bg-surface:  #161b22;
+      --bg-hover:    #1c2128;
+      --border:      #30363d;
+      --text:        #e6edf3;
+      --text-muted:  #7d8590;
+      --text-dim:    #484f58;
+      --accent:      #58a6ff;
+
+      --pill-allowed-bg:      #0d3623;
+      --pill-allowed-text:    #3fb950;
+      --pill-restricted-bg:   #3d1a1a;
+      --pill-restricted-text: #f85149;
+      --pill-conditional-bg:  #3d2c00;
+      --pill-conditional-text:#d29922;
+      --pill-na-bg:           #1c2128;
+      --pill-na-text:         #7d8590;
+
+      --badge-stable-bg:      #0d2a4a;
+      --badge-stable-text:    #58a6ff;
+      --badge-draft-bg:       #3d2c00;
+      --badge-draft-text:     #d29922;
+      --badge-deprecated-bg:  #1c2128;
+      --badge-deprecated-text:#7d8590;
+
+      --font: 'Inter', sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font), sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    main { flex: 1; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code {
+      font-family: var(--mono), monospace;
+      font-size: 0.85em;
+      background: var(--bg-hover);
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: var(--text-muted);
+    }
+
+    header {
+      padding: 1.75rem 2rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+    header h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 0.2rem;
+    }
+    header p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.85rem 2rem;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .controls input[type="search"],
+    .controls select {
+      font-family: var(--font);
+      font-size: 0.8rem;
+      background: var(--bg-surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.35rem 0.65rem;
+      outline: none;
+    }
+    .controls input[type="search"] { width: 200px; }
+    .controls input[type="search"]:focus,
+    .controls select:focus { border-color: var(--accent); }
+    .controls select { cursor: pointer; }
+    .controls .filter-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .table-wrap {
+      padding: 1.5rem 2rem;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      table-layout: auto;
+      overflow-x: auto;
+    }
+
+    col.c-project  { width: 18%; }
+    col.c-pill     { width: 13%; }
+    col.c-maturity { width: 9%; }
+
+    thead th {
+      background: var(--bg-hover);
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 0.65rem 0.9rem;
+      text-align: left;
+      white-space: nowrap;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+      user-select: none;
+    }
+    thead th:hover { color: var(--text); }
+    thead th.sorted { color: var(--accent); }
+    .sort-arrow { margin-left: 3px; opacity: 0.4; }
+    thead th.sorted .sort-arrow { opacity: 1; }
+
+    tbody tr { border-bottom: 1px solid var(--border); }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--bg-hover); }
+
+    td {
+      padding: 0.65rem 0.9rem;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    td:first-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 0;
+    }
+
+    .project-link {
+      font-weight: 500;
+      font-size: 0.85rem;
+      color: var(--text);
+      border-bottom: 1px dashed var(--border);
+      padding-bottom: 1px;
+    }
+    .project-link:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+      text-decoration: none;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .pill-allowed     { background: var(--pill-allowed-bg);     color: var(--pill-allowed-text); }
+    .pill-required     { background: var(--pill-allowed-bg);     color: var(--pill-allowed-text); }
+    .pill-restricted  { background: var(--pill-restricted-bg);  color: var(--pill-restricted-text); }
+    .pill-conditional { background: var(--pill-conditional-bg); color: var(--pill-conditional-text); }
+    .pill-optional    { background: var(--pill-conditional-bg); color: var(--pill-conditional-text); }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-family: var(--mono);
+    }
+    .badge-stable     { background: var(--badge-stable-bg);     color: var(--badge-stable-text); }
+    .badge-draft      { background: var(--badge-draft-bg);      color: var(--badge-draft-text); }
+    .badge-deprecated { background: var(--badge-deprecated-bg); color: var(--badge-deprecated-text); }
+
+    .tip { position: relative; display: inline-block; cursor: default; }
+    .tip-box { display: none; } /* hidden storage — rendered by #shared-tip */
+
+    #shared-tip {
+      display: none;
+      position: fixed;
+      z-index: 999999;
+      background: #2d333b;
+      color: #cdd9e5;
+      border: 1px solid var(--border);
+      font-size: 0.75rem;
+      padding: 0.5rem 0.7rem;
+      border-radius: 6px;
+      width: 210px;
+      line-height: 1.45;
+      white-space: normal;
+      pointer-events: auto;
+    }
+    #shared-tip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: #2d333b;
+    }
+    #shared-tip.tip-below::after {
+      top: auto;
+      bottom: 100%;
+      border-top-color: transparent;
+      border-bottom-color: #2d333b;
+    }
+    #shared-tip a {
+      color: var(--accent);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    #shared-tip a:hover { opacity: 0.8; }
+
+    .empty {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .legend {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      padding: 0 2rem 1.5rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      align-items: center;
+    }
+    .legend-item { display: flex; align-items: center; gap: 5px; }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1rem 2rem;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>AI Policy Index</h1>
+  <p>Open-source AI contribution policies</p>
+</header>
+
+<main>
+  <div class="controls">
+    <input type="search" id="search" placeholder="Search projects…" />
+
+    <span class="filter-label">
+        <label for="filter-aiCodeGen">AI Codegen</label>
+        <select id="filter-aiCodeGen">
+          <option value="">All</option>
+          <option value="allowed">Allowed</option>
+          <option value="conditional">Conditional</option>
+          <option value="restricted">Restricted</option>
+          <option value="n/a">N/A</option>
+        </select>
+      </span>
+
+    <span id="row-count" style="margin-left:auto; font-size:0.75rem; color:var(--text-muted);"></span>
+
+    <span class="filter-label">
+        <label for="filter-maturity">Policy Status</label>
+        <select id="filter-maturity">
+          <option value="">All</option>
+          <option value="stable">Stable</option>
+          <option value="draft">Draft</option>
+        </select>
+      </span>
+  </div>
+
+  <div class="table-wrap">
+    <table id="policy-table">
+      <colgroup>
+        <col class="c-project" />
+        <col class="c-pill" />
+        <col class="c-pill" />
+        <col class="c-pill" />
+        <col class="c-pill" />
+        <col class="c-pill" />
+        <col class="c-maturity" />
+      </colgroup>
+      <thead>
+      <tr>
+        <th data-col="name">Project <span class="sort-arrow">↕</span></th>
+        <th data-col="aiCodeGen"   title="Whether AI tools may be used to generate code in contributions">AI Codegen <span class="sort-arrow">↕</span></th>
+        <th data-col="aiCodeReview" title="Whether AI tools may be used to review or analyse code">AI Review <span class="sort-arrow">↕</span></th>
+        <th data-col="signOff"     title="Whether contributors must sign off that they reviewed AI-generated content">Author Sign-off <span class="sort-arrow">↕</span></th>
+        <th data-col="attribution" title="Whether the use of AI tools must be disclosed or attributed">AI Disclosure <span class="sort-arrow">↕</span></th>
+        <th data-col="humanReview" title="Whether a human must review AI-generated content before submission">Human Oversight <span class="sort-arrow">↕</span></th>
+        <th data-col="maturity"    title="How clearly defined and enforced the policy is">Policy Status <span class="sort-arrow">↕</span></th>
+      </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+    <div class="empty" id="empty-state" style="display:none;">No projects match your filters.</div>
+  </div>
+
+<!--  <div class="legend">-->
+<!--    <strong style="color:#7d8590;">Legend:</strong>-->
+<!--    <span class="legend-item"><span class="pill pill-allowed">Allowed</span></span>-->
+<!--    <span class="legend-item"><span class="pill pill-conditional">Conditional</span></span>-->
+<!--    <span class="legend-item"><span class="pill pill-restricted">Restricted</span></span>-->
+<!--    <span class="legend-item"><span class="pill pill-na">N/A</span>no info / not applicable</span>-->
+<!--  </div>-->
+</main>
+
+<footer>
+  <span>© 2026 AI Policy Index &nbsp;·&nbsp; <span id="last-updated" style="color:var(--text-dim)"></span></span>
+  <span style="color:var(--text-dim); font-size:0.7rem; max-width:520px; text-align:right; line-height:1.5;">
+      Information is provided for reference only and may be incomplete or out of date.
+      Always consult the official policy of each project before contributing.
+      This site is not affiliated with any listed project.
+    </span>
+</footer>
+
+
+<script>
+  function esc(s) {
+    return String(s ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function safeUrl(url) {
+    try {
+      const u = new URL(url);
+      return (u.protocol === 'https:' || u.protocol === 'http:') ? url : '#';
+    } catch { return '#'; }
+  }
+
+  // Build a color pill; wrap in tooltip with a text-fragment link if a citation exists
+  function makePill(value, citation, url) {
+    const dash = `<span style="color:var(--text-dim)">—</span>`;
+    if (!value || value === 'n/a') {
+      return citation ? `<span class="tip">${dash}<span class="tip-box">${citationLink(citation, url)}</span></span>` : dash;
+    }
+    const labels = {
+      allowed: 'Allowed', restricted: 'Restricted', conditional: 'Conditional',
+      required: 'Required', optional: 'Optional'
+    };
+    const label = labels[value] || esc(value);
+    const pill  = `<span class="pill pill-${esc(value)}">${label}</span>`;
+    return citation ? `<span class="tip">${pill}<span class="tip-box">${citationLink(citation, url)}</span></span>` : pill;
+  }
+
+  function citationLink(citation, url) {
+    const safeHref = url ? `${safeUrl(url)}#:~:text=${encodeURIComponent(citation)}` : null;
+    return safeHref
+      ? `<a href="${safeHref}" target="_blank" rel="noopener">${esc(citation)}</a>`
+      : esc(citation);
+  }
+
+  // Build a policy status badge
+  function makeBadge(maturity) {
+    const m = esc(maturity || 'draft');
+    return `<span class="badge badge-${m}">${m}</span>`;
+  }
+
+  // Build one table row from a policy object
+  function buildRow(p) {
+    return `<tr>
+        <td><a href="${safeUrl(p.url)}" target="_blank" rel="noopener" class="project-link">${esc(p.name)}</a></td>
+        <td>${makePill(p.aiCodeGen,    p.aiCodeGenCitation,    p.url)}</td>
+        <td>${makePill(p.aiCodeReview, p.aiCodeReviewCitation, p.url)}</td>
+        <td>${makePill(p.signOff,      p.signOffCitation,      p.url)}</td>
+        <td>${makePill(p.attribution,  p.attributionCitation,  p.url)}</td>
+        <td>${makePill(p.humanReview,  p.humanReviewCitation,  p.url)}</td>
+        <td>${makeBadge(p.maturity)}</td>
+      </tr>`;
+  }
+
+  let allPolicies = [];
+  let sortCol     = null;
+  let sortAsc     = true;
+
+  function render() {
+    const search    = document.getElementById('search').value.toLowerCase();
+    const filterGen = document.getElementById('filter-aiCodeGen').value;
+    const filterMat = document.getElementById('filter-maturity').value;
+
+    // 1. Filter
+    let rows = allPolicies.filter(p =>
+        (!search    || p.name.toLowerCase().includes(search)) &&
+        (!filterGen || p.aiCodeGen === filterGen) &&
+        (!filterMat || p.maturity  === filterMat)
+    );
+
+    // 2. Sort
+    if (sortCol) {
+      rows = rows.slice().sort((a, b) => {
+        const va = (a[sortCol] || '').toLowerCase();
+        const vb = (b[sortCol] || '').toLowerCase();
+        return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+    }
+
+    // 3. Write to DOM
+    document.getElementById('row-count').textContent =
+        `${rows.length} / ${allPolicies.length} projects`;
+    const tbody = document.getElementById('table-body');
+    const empty = document.getElementById('empty-state');
+    if (rows.length === 0) {
+      tbody.innerHTML = '';
+      empty.style.display = 'block';
+    } else {
+      tbody.innerHTML = rows.map(buildRow).join('');
+      empty.style.display = 'none';
+    }
+  }
+
+  document.querySelectorAll('thead th[data-col]').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.col;
+      sortAsc = (sortCol === col) ? !sortAsc : true;
+      sortCol = col;
+      document.querySelectorAll('thead th').forEach(t => {
+        t.classList.remove('sorted');
+        t.querySelector('.sort-arrow').textContent = '↕';
+      });
+      th.classList.add('sorted');
+      th.querySelector('.sort-arrow').textContent = sortAsc ? '↑' : '↓';
+      render();
+    });
+  });
+
+  document.getElementById('search').addEventListener('input', render);
+  document.getElementById('filter-aiCodeGen').addEventListener('change', render);
+  document.getElementById('filter-maturity').addEventListener('change', render);
+
+  // Fixed-position shared tooltip — escapes table overflow:hidden and controls bar
+  const sharedTip = document.createElement('div');
+  sharedTip.id = 'shared-tip';
+  document.body.appendChild(sharedTip);
+
+  function showTip(anchor) {
+    const box = anchor.querySelector('.tip-box');
+    if (!box) return;
+    sharedTip.innerHTML = box.innerHTML;
+    sharedTip.style.display = 'block';
+    sharedTip.style.visibility = 'hidden';   // measure before revealing
+
+    const a = anchor.getBoundingClientRect();
+    const t = sharedTip.getBoundingClientRect();
+    const above = a.top - t.height - 10 >= 0;
+
+    sharedTip.classList.toggle('tip-below', !above);
+    sharedTip.style.top  = (above ? a.top - t.height - 10 : a.bottom + 10) + 'px';
+    sharedTip.style.left = Math.max(8, Math.min(
+      a.left + a.width / 2 - t.width / 2,
+      window.innerWidth - t.width - 8
+    )) + 'px';
+    sharedTip.style.visibility = '';
+  }
+
+  let hideTimer = null;
+  const scheduleHide = () => { hideTimer = setTimeout(() => { sharedTip.style.display = 'none'; }, 150); };
+  const cancelHide  = () => clearTimeout(hideTimer);
+
+  document.addEventListener('mouseover', e => {
+    const tip = e.target.closest('.tip');
+    if (tip) { cancelHide(); showTip(tip); }
+  });
+
+  document.addEventListener('mouseout', e => {
+    if (e.target.closest('.tip')) scheduleHide();
+  });
+
+  sharedTip.addEventListener('mouseenter', cancelHide);
+  sharedTip.addEventListener('mouseleave', scheduleHide);
+
+  fetch('data/policies.json')
+  .then(res => {
+    if (!res.ok) throw new Error('Could not load data/policies.json');
+    return res.json();
+  })
+  .then(data => {
+    allPolicies = data;
+    render();
+    const oldest = data.map(p => p.lastScanned).filter(Boolean)
+        .map(s => new Date(s)).sort((a, b) => a - b)[0];
+    if (oldest) {
+      document.getElementById('last-updated').textContent =
+          `Data last refreshed: ${oldest.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}`;
+    }
+  })
+  .catch(err => {
+    document.getElementById('table-body').innerHTML =
+        `<tr><td colspan="7" style="color:#f85149; padding:1.5rem;">
+            Error: ${err.message}.<br>
+            Make sure <code>data/policies.json</code> sits next to <code>index.html</code>.
+          </td></tr>`;
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+name,policy_url
+Linux Kernel,https://raw.githubusercontent.com/torvalds/linux/refs/heads/master/Documentation/process/coding-assistants.rst
+OpenJDK,https://openjdk.org/legal/ai
+Quarkus,https://raw.githubusercontent.com/quarkusio/quarkus/refs/heads/main/AI_POLICY.md
+Fedora,https://forge.fedoraproject.org/council/docs/raw/branch/main/council/modules/ROOT/pages/policy/ai-contribution-policy.adoc
+GraalVM,https://raw.githubusercontent.com/oracle/graal/refs/heads/master/CODING_ASSISTANTS.md
+Apache Foundation,https://raw.githubusercontent.com/apache/www-site/refs/heads/main/content/legal/generative-tooling.md
+Python,https://raw.githubusercontent.com/python/devguide/refs/heads/main/getting-started/generative-ai.rst
+Firefox,https://firefox-source-docs.mozilla.org/_sources/contributing/ai-coding.md.txt
