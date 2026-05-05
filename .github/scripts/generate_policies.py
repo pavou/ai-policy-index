@@ -105,7 +105,9 @@ verbatim citation from the document.
 
 ── CITATION RULES ──────────────────────────────────────────────────────────────
 1. A citation is a single sentence or clause copied CHARACTER-FOR-CHARACTER from
-   the document. Preserve original capitalisation, punctuation, and spelling.
+   the document. Preserve original capitalisation, punctuation, spelling, and
+   whitespace — including line breaks. Represent line breaks as \n in the JSON
+   string. Do not replace line breaks with spaces.
 2. Choose the sentence that most DIRECTLY and SPECIFICALLY states the policy —
    not background context, not a general statement.
 3. Do NOT paraphrase, summarise, shorten, or merge text from different sentences.
