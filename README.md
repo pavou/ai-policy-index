@@ -1,17 +1,32 @@
 # AI Policy Index
 
-A community-maintained index of open-source projects' AI contribution policies,
-classified automatically from each project's official policy document.
+Tracks how open-source projects handle AI-generated contributions – whether they allow it, require disclosure, mandate human review, and so on.
 
-| Project | AI Codegen | AI Review | Author Sign-off | AI Disclosure | Human Oversight | Policy Status |
-|---------|-----------|-----------|-----------------|---------------|-----------------|---------------|
-| [Linux Kernel](https://raw.githubusercontent.com/torvalds/linux/refs/heads/master/Documentation/process/coding-assistants.rst) | ⚠️ Conditional | ⚠️ Conditional | ✅ Required | ✅ Required | ✅ Required | stable |
-| [OpenJDK](https://openjdk.org/legal/ai) | ❌ Restricted | ✅ Allowed | ✅ Required | ⚠️ Optional | ✅ Required | stable |
-| [Quarkus](https://raw.githubusercontent.com/quarkusio/quarkus/refs/heads/main/AI_POLICY.md) | ⚠️ Conditional | ⚠️ Conditional | — | — | ✅ Required | stable |
-| [Fedora](https://forge.fedoraproject.org/council/docs/raw/branch/main/council/modules/ROOT/pages/policy/ai-contribution-policy.adoc) | ⚠️ Conditional | ⚠️ Conditional | ✅ Required | ✅ Required | ✅ Required | stable |
-| [GraalVM](https://raw.githubusercontent.com/oracle/graal/refs/heads/master/CODING_ASSISTANTS.md) | ✅ Allowed | ✅ Allowed | — | ⚠️ Optional | ✅ Required | stable |
-| [Apache Foundation](https://raw.githubusercontent.com/apache/www-site/refs/heads/main/content/legal/generative-tooling.md) | ⚠️ Conditional | ⚠️ Conditional | — | ⚠️ Optional | ✅ Required | stable |
-| [Python](https://raw.githubusercontent.com/python/devguide/refs/heads/main/getting-started/generative-ai.rst) | ⚠️ Conditional | ⚠️ Conditional | — | — | ✅ Required | stable |
-| [Firefox](https://firefox-source-docs.mozilla.org/_sources/contributing/ai-coding.md.txt) | ✅ Allowed | ⚠️ Conditional | — | — | ✅ Required | stable |
+## What it is
 
-_Last updated: 2026-04-29. Classifications are AI-assisted — always consult the official policy before contributing._
+A growing number of projects have started publishing AI contribution policies. In this fast-paced era of LLMs, it is nice to have a place to see and compare the decisions made by major project. 
+This project fetches those documents, classifies them on a few key dimensions, and presents them in a filterable table.
+
+## How it works
+
+- `data/projects.csv` the list of tracked projects and their policy document URLs
+- `.github/scripts/generate_policies.py` A classification script calls an LLM to extract the relevant fields from each policy document
+- `data/policies.json` the output, consumed by the frontend
+- `index.html` a single-page app that renders and filters the table
+
+## Adding a project
+
+Add a row to `data/projects.csv` with the project name and a direct link to its AI or contributing policy document, then open a PR.
+
+## Running locally
+
+```bash
+cd .github/scripts
+python generate_policies.py
+```
+
+Requires three environment variables: `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, and `AZURE_OPENAI_DEPLOYMENT`.
+
+## Model
+
+The classification pipeline uses Azure OpenAI (GPT-4o). GitHub Actions provides a small free quota of GPT-4o calls, which is enough for the weekly refresh given the incremental design — only projects whose policy content has changed since the last scan are sent to the model.

@@ -72,19 +72,6 @@ def _parse_ts(ts: str) -> datetime:
   return dt
 
 
-def is_stale(record: dict, current_hash: str, rescan_days: int) -> bool:
-  """Return True if the record should be re-classified."""
-  if record.get("contentHash") != current_hash:
-    return True
-  ts = record.get("lastScanned")
-  if not ts:
-    return True
-  try:
-    return datetime.now(timezone.utc) - _parse_ts(ts) > timedelta(days=rescan_days)
-  except ValueError:
-    return True
-
-
 # ── Argument parsing ───────────────────────────────────────────────────────────
 
 parser = argparse.ArgumentParser()
@@ -96,8 +83,6 @@ parser.add_argument("--rescan-days", type=int, default=RESCAN_DAYS_DEFAULT,
                     dest="rescan_days",
                     help=f"Re-classify a project only if its content changed or "
                          f"this many days have passed (default: {RESCAN_DAYS_DEFAULT})")
-parser.add_argument("--readme", default="../../README.md",
-                    help="Path to output README.md (empty string to skip)")
 args = parser.parse_args()
 
 ENDPOINT   = os.environ.get("AZURE_OPENAI_ENDPOINT", "").rstrip("/")
@@ -253,54 +238,6 @@ def verify_citations(classification: dict, policy_text: str) -> dict:
       classification[key] = None
   return classification
 
-
-def generate_readme(results: list, path: str) -> None:
-  LABELS = {
-    "allowed":     "✅ Allowed",
-    "required":    "✅ Required",
-    "conditional": "⚠️ Conditional",
-    "optional":    "⚠️ Optional",
-    "restricted":  "❌ Restricted",
-  }
-
-  rows = []
-  for p in results:
-    rows.append("| {name} | {gen} | {rev} | {sign} | {attr} | {human} | {mat} |".format(
-      name  = f"[{p['name']}]({p['url']})",
-      gen   = LABELS.get(p.get("aiCodeGen"),    "—"),
-      rev   = LABELS.get(p.get("aiCodeReview"), "—"),
-      sign  = LABELS.get(p.get("signOff"),       "—"),
-      attr  = LABELS.get(p.get("attribution"),   "—"),
-      human = LABELS.get(p.get("humanReview"),   "—"),
-      mat   = p.get("maturity") or "—",
-    ))
-
-  last_scanned = max(
-    (p["lastScanned"] for p in results if p.get("lastScanned")),
-    default="unknown"
-  )[:10]
-
-  lines = [
-    "# AI Policy Index",
-    "",
-    "A community-maintained index of open-source projects' AI contribution policies,",
-    "classified automatically from each project's official policy document.",
-    "",
-    "| Project | AI Codegen | AI Review | Author Sign-off | AI Disclosure | Human Oversight | Policy Status |",
-    "|---------|-----------|-----------|-----------------|---------------|-----------------|---------------|",
-    *rows,
-    "",
-    f"_Last updated: {last_scanned}. "
-    "Classifications are AI-assisted — always consult the official policy before contributing._",
-  ]
-
-  os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-  with open(path, "w", encoding="utf-8") as f:
-    f.write("\n".join(lines) + "\n")
-
-  print(f"Wrote README to: {path}")
-
-
 def error_record(name, url, reason):
   return {
     "name": name, "url": url,
@@ -348,6 +285,17 @@ def main():
     cached = existing.get(name)
     print(f"[{name}]")
 
+    # Skip entirely (no fetch) if the record is within the rescan window
+    if cached and cached.get("lastScanned"):
+      try:
+        age = datetime.now(timezone.utc) - _parse_ts(cached["lastScanned"])
+        if age <= timedelta(days=args.rescan_days):
+          print(f"  Skipping (last scanned {age.days}d ago, within rescan window).")
+          results.append(cached)
+          continue
+      except ValueError:
+        pass
+
     # Fetch and extract
     try:
       print(f"  Fetching: {url}")
@@ -360,11 +308,10 @@ def main():
       results.append(cached if cached else error_record(name, url, str(e)))
       continue
 
-    # Skip LLM if content is fresh and unchanged
-    if cached and not is_stale(cached, content_hash, args.rescan_days):
-      age_days = (datetime.now(timezone.utc) - _parse_ts(cached["lastScanned"])).days
-      print(f"  Skipping (content unchanged, last scanned {age_days}d ago).")
-      results.append(cached)
+    # Hash unchanged → site was fetched, update lastScanned but skip LLM
+    if cached and cached.get("contentHash") == content_hash:
+      print(f"  Content hash unchanged, updating lastScanned.")
+      results.append({**cached, "lastScanned": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")})
       continue
 
     # Classify
@@ -391,9 +338,6 @@ def main():
     json.dump(results, f, indent=2, ensure_ascii=False)
 
   print(f"\nDone. Wrote {len(results)} record(s) to: {args.output}")
-
-  if args.readme:
-    generate_readme(results, args.readme)
 
 
 if __name__ == "__main__":

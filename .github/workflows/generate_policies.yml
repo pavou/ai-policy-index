@@ -4,14 +4,13 @@ on:
   push:
     branches: [main]
     paths:
-      - 'data/projects.csv'        # new project added → classify immediately
+      - 'data/projects.csv'
   schedule:
-    - cron: '0 3 * * 1'           # every Monday 03:00 UTC → catch policy changes
-  workflow_dispatch:               # manual run from the Actions tab
+    - cron: '0 3 * * 1'           # every Monday 03:00 UTC
+  workflow_dispatch:
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
   generate:
@@ -25,25 +24,17 @@ jobs:
           AZURE_OPENAI_ENDPOINT:   ${{ secrets.AZURE_OPENAI_ENDPOINT }}
           AZURE_OPENAI_API_KEY:    ${{ secrets.AZURE_OPENAI_API_KEY }}
           AZURE_OPENAI_DEPLOYMENT: ${{ secrets.AZURE_OPENAI_DEPLOYMENT }}
-        run: python generate_policies.py
+          RESCAN_DAYS:             ${{ vars.RESCAN_DAYS }}
+        run: python generate_policies.py ${RESCAN_DAYS:+--rescan-days "$RESCAN_DAYS"}
 
-      - name: Open PR with updated policies.json
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit updated policies.json
         run: |
-          BRANCH="policy-updates/$(date -u +%Y-%m-%d)"
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -b "$BRANCH"
-          git add data/policies.json README.md
+          git add data/policies.json
           if git diff --cached --quiet; then
-            echo "No changes to policies.json — skipping PR."
+            echo "No changes — skipping commit."
             exit 0
           fi
-          git commit -m "chore: refresh policies.json"
-          git push origin "$BRANCH"
-          gh pr create \
-            --base main \
-            --head "$BRANCH" \
-            --title "chore: refresh policies.json ($(date -u +%Y-%m-%d))" \
-            --body "Automated policy refresh. Review the diff in \`data/policies.json\` before merging."
+          git commit -m "chore: refresh policies.json ($(date -u +%Y-%m-%d))"
+          git push origin main
