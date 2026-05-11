@@ -13,7 +13,7 @@
     "humanReviewCitation": "The human submitter is responsible for: * Reviewing all AI-generated code",
     "humanReview": "required",
     "maturity": "stable",
-    "lastScanned": "2026-05-05T20:28:22Z",
+    "lastScanned": "2026-05-11T06:41:48Z",
     "contentHash": "6fc9231faf78f923dfc3cb1528f14747eb50477defc9c8eb9c065b0a7336b59e"
   },
   {
@@ -30,7 +30,7 @@
     "humanReviewCitation": "In this role you are already expected to do your best to ensure that incoming contributions are consistent with OpenJDK Community policies and conventions.",
     "humanReview": "required",
     "maturity": "stable",
-    "lastScanned": "2026-05-05T20:28:22Z",
+    "lastScanned": "2026-05-11T06:41:48Z",
     "contentHash": "a2df67a578046fbd63ff91d939bc06fd3c89bc0bf7bda4b5bc9be8fe8e39abe0"
   },
   {
@@ -47,7 +47,7 @@
     "humanReviewCitation": "Submitting code, tests, comments, discussions or issues that appear to be **copied directly from an AI with little or no human oversight** is **not acceptable**.",
     "humanReview": "required",
     "maturity": "stable",
-    "lastScanned": "2026-05-05T20:28:23Z",
+    "lastScanned": "2026-05-11T06:41:48Z",
     "contentHash": "2d92df5b54b288ce37b87ecb2c7f6e0dd5916d5b6e820c68adfaf7a7ae7b6ebd"
   },
   {
@@ -64,7 +64,7 @@
     "humanReviewCitation": "You *MUST NOT* use AI as the sole or final arbiter in making a substantive or subjective judgment on a contribution, nor may it be used to evaluate a person’s standing within the community (e.g., for funding, leadership roles, or Code of Conduct matters).",
     "humanReview": "required",
     "maturity": "stable",
-    "lastScanned": "2026-05-05T20:28:23Z",
+    "lastScanned": "2026-05-11T06:41:49Z",
     "contentHash": "dac1a441ea64b3d98d65335035cb30f43d3285e665f3da7dc3f6a3266701e910"
   },
   {
@@ -81,7 +81,7 @@
     "humanReviewCitation": "The human contributor submitting a change remains responsible for the entire contribution, including any AI-assisted portion.",
     "humanReview": "required",
     "maturity": "stable",
-    "lastScanned": "2026-05-05T20:28:23Z",
+    "lastScanned": "2026-05-11T06:41:49Z",
     "contentHash": "8f53a842fbafa48b4dfddd64a0a3d2208b0b72f7cf78841b1a044b7599cb174e"
   },
   {
@@ -98,7 +98,7 @@
     "humanReviewCitation": "A contributor obtains reasonable certainty that conditions 2.2 or 2.3 are met if the AI tool itself provides sufficient information about output that may be similar to training data, or from code scanning results.",
     "humanReview": "required",
     "maturity": "stable",
-    "lastScanned": "2026-05-05T20:28:23Z",
+    "lastScanned": "2026-05-11T06:41:49Z",
     "contentHash": "d70d7fb42bece1bb7405b8ab11ce72510d404bc9789d85cb3b368e13a2e86bea"
   },
   {
@@ -115,7 +115,7 @@
     "humanReviewCitation": "Authors must review the work done by AI tooling in detail to ensure it actually makes sense before proposing it as a PR.",
     "humanReview": "required",
     "maturity": "stable",
-    "lastScanned": "2026-05-05T20:28:24Z",
+    "lastScanned": "2026-05-11T06:41:49Z",
     "contentHash": "a0888e2589168c57ad0605bba1aaf0c8d52d909e548885d41b2badd476203623"
   },
   {
