@@ -7,3 +7,6 @@ GraalVM,https://raw.githubusercontent.com/oracle/graal/refs/heads/master/CODING_
 Apache Foundation,https://raw.githubusercontent.com/apache/www-site/refs/heads/main/content/legal/generative-tooling.md
 Python,https://raw.githubusercontent.com/python/devguide/refs/heads/main/getting-started/generative-ai.rst
 Firefox,https://firefox-source-docs.mozilla.org/_sources/contributing/ai-coding.md.txt
+Chromium,https://raw.githubusercontent.com/chromium/chromium/refs/heads/main/agents/ai_policy.md
+Gradle,https://raw.githubusercontent.com/gradle/gradle/refs/heads/master/AI_POLICY.md
+QEMU,https://gitlab.com/qemu-project/qemu/-/raw/master/docs/devel/code-provenance.rst
