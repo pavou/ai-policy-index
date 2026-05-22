@@ -1,5 +1,7 @@
 # AI Policy Index
 
+[AI Policy Index](https://pavou.github.io/ai-policy-index/)
+
 Tracks how open-source projects handle AI-generated contributions – whether they allow it, require disclosure, mandate human review, and so on.
 
 ## What it is
